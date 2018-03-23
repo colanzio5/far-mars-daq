@@ -2,7 +2,7 @@ var SerialPort = require('serialport');
 var mqtt = require('mqtt');
 
 //init mqtt connection
-const mqttClient = mqtt.connect('mqtt://broker.hivemq.com')
+const mqttClient = mqtt.connect('mqtt://192.168.0.36:1883')
 //MQTT EVENT LISTENERS
 mqttClient.on('connect', () => {
     MQTT_STATUS = 1;
@@ -12,6 +12,7 @@ mqttClient.on('connect', () => {
 
 mqttClient.on('message', (topic, message) => {
     if(topic === 'SERVER/IN'){
+        console.log("New MQTT MESSAGE: " + message);
         //todo: server commands from server admin client can be called here
     }
 });
@@ -102,9 +103,11 @@ function sendDataToSubscribers(data) {
     return new Promise((resolve, reject) => {
         if (data.hasOwnProperty('p')) {
             //todo: send to pressure topic
+            mqttClient.publish('DAQ/CRITICAL', String(data.p));
         }
         if (data.hasOwnProperty('t')) {
             //todo: send to temperature topic
+            mqttClient.publish('DAQ/PERIPHERAL', String(data.t));
         }
     });
 }
