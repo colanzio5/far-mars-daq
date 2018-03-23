@@ -1,33 +1,23 @@
 # far-mars-daq
-software package for FAR Mars rocket - data acquisition - com port and mqtt interface
-
 Application package for control and data acquisition of the far-mars rocket. Utilizes PyQt and PyQtGraph for data visualization and a MQTT broker for backend services.
 
 ## Control Flow
-```mermaid
-sequenceDiagram
-    MCU Chip-> Server: Serial COM Port
-    Server->>Server Admin Client: MQTT
-
-    Server ->> Critical Client: MQTT
-    Server->>Peripheral Client: MQTT
-
-    Server-->>Critical Client: Pressure, Valve States
-    Server -->> Critical Client: Mission Status Codes
-    Server-->>Peripheral Client: IMU, Temperature, etc.
-
-    Server Admin Client-->>Server: MCU  & Server Commands
-    Server -->> MCU Chip: MCU Commands`mermaid
-```
-
 1) MCU Board Reads Data
 2) MCU Sends Data Over COM Port
 3) Server Reads COM Port Data, Logs Data, Determines Topic
 4) Server Sends Read Data to Topic
 5) Clients Subscribed to Topic Recieve Data
 6) Client Program Displays Data
-# Components
 
+## MQTT TOPICS
+Topic Name | Topic Items 
+DAQ/STATUS | MCU Status 
+DAQ/CRITICAL | Pressure, Valve States 
+DAQ/PERIPHERAL | IMU, Temperature 
+SERVER/IN | Server Commands 
+SERVER/OUT | Server Logs 
+
+# Components
 ## MCU
 - Output: Individial key value pairs formatted in json. 
 ```
@@ -72,3 +62,4 @@ All clients get data over a MQTT connection. On startup, the client subscribes t
 - Server caught errors and exceptions to this client.
 - View Server Logs
 - This Client helps us avoid managing the server over an ssh connection. 
+
