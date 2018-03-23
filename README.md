@@ -10,12 +10,13 @@ Application package for control and data acquisition of the far-mars rocket. Uti
 6) Client Program Displays Data
 
 ## MQTT TOPICS
-Topic Name | Topic Items 
-DAQ/STATUS | MCU Status 
-DAQ/CRITICAL | Pressure, Valve States 
-DAQ/PERIPHERAL | IMU, Temperature 
-SERVER/IN | Server Commands 
-SERVER/OUT | Server Logs 
+Topic Name | Topic Items |
+--- | --- | ---
+DAQ/STATUS | MCU Status  |
+DAQ/CRITICAL | Pressure, Valve States  |
+DAQ/PERIPHERAL | IMU, Temperature  |
+SERVER/IN | Server Commands  |
+SERVER/OUT | Server Logs  |
 
 # Components
 ## MCU
