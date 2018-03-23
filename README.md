@@ -18,10 +18,6 @@ Application package for control and data acquisition of the far-mars rocket. Uti
 |SERVER/IN       | Server Commands        |3      |
 |SERVER/OUT      | Server Logs            |4      |
 
-Topic Name | Topic Items |
---- | --- | ---
-
-
 # Components
 ## MCU
 - Output: Individial key value pairs formatted in json. 
