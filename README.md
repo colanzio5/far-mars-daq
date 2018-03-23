@@ -6,18 +6,18 @@ Application package for control and data acquisition of the far-mars rocket. Uti
 ## Control Flow
 ```mermaid
 sequenceDiagram
-MCU Chip-> Server: Serial COM Port
-Server->>Server Admin Client: MQTT
+    MCU Chip-> Server: Serial COM Port
+    Server->>Server Admin Client: MQTT
 
-Server ->> Critical Client: MQTT
-Server->>Peripheral Client: MQTT
+    Server ->> Critical Client: MQTT
+    Server->>Peripheral Client: MQTT
 
-Server-->>Critical Client: Pressure, Valve States
-Server -->> Critical Client: Mission Status Codes
-Server-->>Peripheral Client: IMU, Temperature, etc.
+    Server-->>Critical Client: Pressure, Valve States
+    Server -->> Critical Client: Mission Status Codes
+    Server-->>Peripheral Client: IMU, Temperature, etc.
 
-Server Admin Client-->>Server: MCU  & Server Commands
-Server -->> MCU Chip: MCU Commands`mermaid
+    Server Admin Client-->>Server: MCU  & Server Commands
+    Server -->> MCU Chip: MCU Commands`mermaid
 ```
 
 1) MCU Board Reads Data
