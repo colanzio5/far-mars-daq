@@ -10,19 +10,17 @@ Application package for control and data acquisition of the far-mars rocket. Uti
 6) Client Program Displays Data
 
 ## MQTT TOPICS
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
+| Topic Name     | Topic Items            | No.   |
+|----------------|------------------------|------:|
+|DAQ/STATUS      | MCU Status             |0      |
+|DAQ/CRITICAL    | Pressure, Valve States |1      |
+|DAQ/PERIPHERAL  | IMU, Temperature       |2      |
+|SERVER/IN       | Server Commands        |3      |
+|SERVER/OUT      | Server Logs            |4      |
 
 Topic Name | Topic Items |
 --- | --- | ---
-DAQ/STATUS | MCU Status  |
-DAQ/CRITICAL | Pressure, Valve States  |
-DAQ/PERIPHERAL | IMU, Temperature  |
-SERVER/IN | Server Commands  |
-SERVER/OUT | Server Logs  |
+
 
 # Components
 ## MCU
