@@ -20,18 +20,18 @@ Application package for control and data acquisition of the far-mars rocket. Uti
 
 # Components
 ## MCU
-- Output: Individial key value pairs formatted in json. 
+- Output: Individial key value pairs formatted in json. IMPORTANT: first key of json must contain raw data key (temperature, pressure, valve_states, imu)
 ```
 {
+  'pressure': [0,0,0],
   'timestamp': '1256953732',
-  'ducers': [0,0,0],
   'status': 0
 }
 ```
 ```
 {
+  'valve_states': [1,1,0],
   'timestamp': '1256953732',
-  'valve-states': [1,1,0],
   'status': 2
 }
 

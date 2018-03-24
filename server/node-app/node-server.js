@@ -1,21 +1,28 @@
 var SerialPort = require('serialport');
+var winston = require('winston')
 var mqtt = require('mqtt');
+
+//init logging
+var winston = require('winston');
+
+var logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({ json: false, timestamp: true }),
+    new winston.transports.File({ filename: __dirname + '/logs/debug.log', json: false })
+  ],
+  exceptionHandlers: [
+    new (winston.transports.Console)({ json: false, timestamp: true }),
+    new winston.transports.File({ filename: __dirname + '/logs/exceptions.log', json: false })
+  ],
+  exitOnError: false
+});
+
+// 0 - disconnected, 1 - connected, 2 - refresh?
+var mqtt_status = 0;
+var mcu_status = 0;
 
 //init mqtt connection
 const mqttClient = mqtt.connect('mqtt://192.168.0.36:1883')
-//MQTT EVENT LISTENERS
-mqttClient.on('connect', () => {
-    MQTT_STATUS = 1;
-    mqttClient.subscribe('SERVER/IN');
-    console.log("Connect to MQTT broker!")
-});
-
-mqttClient.on('message', (topic, message) => {
-    if(topic === 'SERVER/IN'){
-        console.log("New MQTT MESSAGE: " + message);
-        //todo: server commands from server admin client can be called here
-    }
-});
 
 //init com port connection
 var Readline = SerialPort.parsers.Readline;
@@ -25,99 +32,100 @@ var serialPort = new SerialPort('COM3', {
 var parser = new Readline();
 serialPort.pipe(parser);
 
-// 0 - disconnected, 1 - connected, 2 - refresh?
-var MQTT_STATUS = 0;
-var MCU_STATUS = 0;
-
-//SERIAL PORT EVENT LISTENERS
-//when connection is established, do this
 serialPort.on('open', () => {
-    console.log('\nCommunication is on!');
-    MCU_STATUS = 1;
+    logger.info("serial port connected!")
+    mcu_status = 1;
 });
 
 //when connection error occurs do this
 serialPort.on('error', () => {
-    console.log('\nCRITICAL: COM PORT HAS ENCOUNTERED ERROR!');
-    MCU_STATUS = 2;
+    logger.error("serial port error encountered")
+    mcu_status = 2;
     //todo: send status update to client applications
 });
 
 //when connection is closed, do this
 serialPort.on('close', () => {
-    console.log('\nCRITICAL: COM PORT HAS DISCONNECTED!');
-    MCU_STATUS = 0;
+    logger.info("serial port has closed");
+    mcu_status = 0;
     //todo: send status update to client applications
 });
 
 //when data is recieved from com port, do this
 parser.on('data', (data) => {
-    console.log("\nNew Data: " + data);
-    parseCOMData(data)
-        .then(parsedData => {
-
-            //do stuff with parsed data
-            sendDataToSubscribers(parsedData).catch(err => {
-                console.log("PARSE ERROR ENCOUNTERED: " + err);
+    logger.info("serial port data: " + data);
+    parseNewData(data)
+        .then((data, topic) => {
+            publishDataToClients(data, topic).then(res => {
+                logger.info(res);
             });
+        }).catch(error => {
+            logger.error(error);
+        });
 
-            logData(parsedData).catch(err => {
-                console.log("LOG ERROR ENCOUNTERED: " + err);
-            });
-        })
-        .catch(err => {
-            console.log("\nERROR ENCOUNTERED: " + err);
-        })
+    logData(data).catch(error => {
+        logger.error(error);
+    });
 });
 
-//HELPERFUNCTIONS
-//parse raw data coming from com port
-function parseCOMData(data) {
+mqttClient.on('connect', () => {
+    mqtt_status = 1;
+    mqttClient.subscribe('SERVER/IN');
+    logger.info("connected to mqtt broker");
+});
+
+//when data is recieved from mqtt on server/in topic, do this
+mqttClient.on('message', (topic, message) => {
+    if (topic === 'SERVER/IN') {
+        loger.info("new mqtt message: " + message);
+        //todo: server commands from server admin client can be called here
+    }
+});
+
+
+//-------------END OF MAIN APP EVEN LOOP HANDELING --------------------//
+function parseNewData(data) {
+    return new Promise((reslve, reject) => {
+        try {
+            //parse string object into json object
+            let json = JSON.parse(data);
+            //gets the string value for the first key -> pressure, temperature, imu, valve_states
+            topic = Object.keys(json)[0];
+            //return topic and data
+            resolve(json, topic);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function publishDataToClients(data, topic) {
     return new Promise((resolve, reject) => {
         try {
             let json = JSON.parse(data);
-            let date = new Date();
-            let MCU_STATUS = json.status;
-
-            if (json.hasOwnProperty('pressure')) {
-                resolve({
-                    ts: date,
-                    p: json.pressure,
-                    s: MCU_STATUS
-                });
-            }
-            if (json.hasOwnProperty('temperature')) {
-                resolve({
-                    ts: date,
-                    t: json.temperature,
-                    s: MCU_STATUS
-                });
+            let mcu_status = json.status;
+            let packet_template = {
+                ts: new Date(),
+                ss: mqtt_status,
+            };
+            if (json.hasOwnProperty(topic)) {
+                packet_template[topic] = json.get(topic);
+                mqttClient.publish(topic, packet)
+                    .then(mqttQOS => {
+                        resolve(mqttQOS);
+                    }).catch(error => {
+                        reject(error);
+                    });
             }
         } catch (error) {
             reject(error);
         }
     });
 }
-//send a parsed data packed to mqtt subscribers
-function sendDataToSubscribers(data) {
-    return new Promise((resolve, reject) => {
-        if (data.hasOwnProperty('p')) {
-            //todo: send to pressure topic
-            mqttClient.publish('DAQ/CRITICAL', String(data.p));
-        }
-        if (data.hasOwnProperty('t')) {
-            //todo: send to temperature topic
-            mqttClient.publish('DAQ/PERIPHERAL', String(data.t));
-        }
-    });
-}
+
 //log data
 function logData(data) {
     return new Promise((resolve, reject) => {
         //todo: add logging library
     });
-}
-
-function connectToCOMPort() {
-    return new Promise()
 }
